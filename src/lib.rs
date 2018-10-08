@@ -1,16 +1,17 @@
-#[macro_use]
 extern crate railroad;
 extern crate regex_syntax;
 
-mod converter;
+mod translator;
 
-use self::converter::convert;
+use self::translator::translate;
 
-use railroad::Diagram;
-use regex_syntax::{Parser, Result};
+use railroad::{Diagram, Sequence};
+use regex_syntax::ast::parse::Parser;
+pub use regex_syntax::Result;
 
-fn generate_diagram<T: AsRef<str>>(regex: T) -> Result<Diagram> {
-    Ok(convert(Parser::new().parse(regex.as_ref())?))
+pub fn generate_diagram<T: AsRef<str>>(regex: T) -> Result<Diagram<Sequence>> {
+    let regex = regex.as_ref();
+    Ok(translate(regex, Parser::new().parse(regex)?))
 }
 
 
