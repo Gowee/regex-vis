@@ -1,5 +1,8 @@
 use railroad::*;
-use regex_syntax::ast::{AssertionKind, Ast, GroupKind, RepetitionKind, RepetitionRange, Span};
+use regex_syntax::ast::{
+    AssertionKind, Ast, Class, ClassPerlKind, GroupKind, LiteralKind, RepetitionKind,
+    RepetitionRange, Span,
+};
 
 pub fn translate(original_pattern: &str, ast: Ast) -> Diagram<Sequence> {
     Diagram::new(Sequence::new(vec![
@@ -22,19 +25,34 @@ impl<'a> Translator<'a> {
         match ast {
             Ast::Empty(_) => Box::new(Empty),
             Ast::Flags(ref f) => unimplemented!(),
-            Ast::Literal(ref l) => Box::new(
-                Terminal::new(format!("{}", self.recover(&l.span))), // TODO: Print visiable bytes directly w/o using escapes.
-            ),
+            Ast::Literal(ref l) => match l.kind {
+                LiteralKind::Verbatim | LiteralKind::Punctuation => {
+                    Box::new(Terminal::new(l.c.to_string()))
+                }
+                LiteralKind::Special(ref s) => Box::new(NonTerminal::new(format!("{:?}", s))),
+                _ => Box::new(Terminal::new(self.recover(&l.span).to_owned())),
+            }, // TODO: Print visiable bytes directly w/o using escapes.
             Ast::Dot(_) => Box::new(NonTerminal::new(String::from("Any charaters"))),
             Ast::Assertion(ref a) => Box::new(NonTerminal::new(String::from(match a.kind {
-                AssertionKind::StartLine => "Start of line",
-                AssertionKind::EndLine => "End of line",
-                AssertionKind::StartText => "Start of text",
-                AssertionKind::EndText => "End of text",
-                AssertionKind::WordBoundary => "Word boundary",
-                AssertionKind::NotWordBoundary => "Not word boundary",
+                AssertionKind::StartLine => "start of line",
+                AssertionKind::EndLine => "end of line",
+                AssertionKind::StartText => "start of text",
+                AssertionKind::EndText => "end of text",
+                AssertionKind::WordBoundary => "word boundary",
+                AssertionKind::NotWordBoundary => "non word boundary",
             }))),
-            Ast::Class(ref c) => Box::new(NonTerminal::new(format!("{}", self.recover(c.span())))),
+            Ast::Class(ref c) => match c {
+                Class::Perl(ref p) => Box::new(NonTerminal::new(format!(
+                    "{}{}",
+                    if p.negated { "non-" } else { "" },
+                    match p.kind {
+                        ClassPerlKind::Digit => "digit",
+                        ClassPerlKind::Space => "whitespace",
+                        ClassPerlKind::Word => "word characters",
+                    }
+                ))),
+                _ => Box::new(NonTerminal::new(format!("{}", self.recover(c.span())))),
+            },
             Ast::Repetition(ref r) => {
                 let repeated = self.traverse(r.ast.as_ref());
                 match r.op.kind {
