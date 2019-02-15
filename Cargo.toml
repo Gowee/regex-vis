@@ -5,5 +5,5 @@ authors = ["Hung-I Wang <whygowe@gmail.com>"]
 edition = "2018"
 
 [dependencies]
-regex-syntax = "0.6.2"
-railroad = { git = "https://github.com/lukaslueg/railroad.git" }
+regex-syntax = "0.6"
+railroad = "0.1"
