@@ -62,15 +62,15 @@ impl<'a> Translator<'a> {
                     }
                     RepetitionKind::OneOrMore => Box::new(Repeat::new(repeated, Empty)),
                     RepetitionKind::Range(ref r) => match r {
-                        RepetitionRange::Exactly(n) => Box::new(Repeat::new(
+                        &RepetitionRange::Exactly(n) => Box::new(Repeat::new(
                             repeated,
-                            Comment::new(format!("= {} times", *n - 1)),
+                            Comment::new(format!("= {} times", n - 1)),
                         )),
-                        RepetitionRange::AtLeast(l) => Box::new(Repeat::new(
+                        &RepetitionRange::AtLeast(l) => Box::new(Repeat::new(
                             repeated,
-                            Comment::new(format!("≥ {} times", *l - 1)),
+                            Comment::new(format!("≥ {} times", l - 1)),
                         )),
-                        RepetitionRange::Bounded(l, u) => match *l {
+                        &RepetitionRange::Bounded(l, u) => match l {
                             0 => Box::new(Optional::new(Repeat::new(
                                 repeated,
                                 Comment::new(format!("≤ {} times", u - 1)),
