@@ -79,10 +79,10 @@ impl<'a> Translator<'a> {
                                 repeated,
                                 Comment::new(format!("≥ {} times", u - 1)),
                             )),
-                            _ => Box::new(Optional::new(Repeat::new(
+                            _ => Box::new(Repeat::new(
                                 repeated,
-                                Comment::new(format!("{} to {} times", l - 1, u - 1)),
-                            ))),
+                                Comment::new(format!("{} ~ {} times", l - 1, u - 1)),
+                            )),
                         },
                     },
                 }
